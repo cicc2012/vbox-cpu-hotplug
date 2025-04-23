@@ -63,4 +63,42 @@ $ VBoxManage controlvm VM1 unplugcpu 1
 
 Change the VM name and index of CPU accordingly. But `CPU 0 can't be removed`.
 
-There might be some errors after running this command for unplugging, which is because of missing VirtualBox Guest Additions for your VM. If that happens, go and install the guest additions.
+There might be some errors after running this command for unplugging:
+
+```
+VBoxManage.exe: error: Hot-Remove was aborted because the CPU may still be used by the guest
+VBoxManage.exe: error: Details: code VBOX_E_VM_ERROR (0x80bb0003), component ConsoleWrap, interface IConsole, callee IUnknown
+VBoxManage.exe: error: Context: "HotUnplugCPU(n)" at line 412 of file VBoxManageControlVM.cpp
+```
+
+This might be caused by two common reasons:
+(1) The second cpu is still in use.
+(2) Guest Additions are not installed for our guest OS.
+
+To resolve this:
+(1) Inside guest OS, check whether the second cpu is in use:
+```bash
+ls /sys/devices/system/cpu
+```
+Other than cpu0, you might see cpu1, which the second cpu. Then:
+```bash
+sudo cat /sys/devices/system/cpu/cpu1/online
+```
+If the content is 0, the cpu is not in use. Otherwise, we need to manually set it to 0 (if it's in use, that means the VM is busy, so it's not a good time to do cpu unplug. But if you insist in doing cpu unplug, do the following job):
+```bash
+echo 0 > /sys/devices/system/cpu/cpu1/online
+```
+
+(2) To install the guest additions, we need to run the following commands in the guest OS:
+```bash
+sudo apt update
+sudo apt install build-essential dkms linux-headers-$(uname -r) gcc make perl
+```
+Then go to VM's virtualbox window, find Devices -> Insert Guest Additions CD image...
+Go back to guest os, and mount the cdrom:
+```bash
+sudo mount /dev/cdrom /media
+sudo /media/VBoxLinuxAdditions.run
+```
+Once the guest additions are installed, we should be ready to do cpu unplug.
+
