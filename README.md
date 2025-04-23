@@ -43,14 +43,13 @@ There is no output after the first command.
 
 The performance metric used here is Guest/CPU/Load/Idle. The data collection period is 2 seconds. For each record, there will be 5 data points (samples). These can all the be changed based on your design.
 
-The "VBoxManage metrics collect" command will keep generating some outputs, and you can press Ctrl+C to stop (change it based on your OS). Once this is done, the data will be saved periodically in the background (not showed on the screen), so that you can repeat "VBoxManage metrics query" command to get the data again and again.
+The "VBoxManage metrics collect" command will keep generating some outputs, and you can press Ctrl+C to stop (change it based on your OS). Once this is done, the data will be saved periodically in the background (not showed on the screen), so that you can repeat "VBoxManage metrics query" command to get the data again and again. This is the third command in the table above, and the output is redirected to a file named monitor.dat, which can be changed as you need. 
 
-This is the third command in the table above, and the output is redirected to a file named monitor.dat, which can be changed as you need. 
-
+### 3. CPU Hotplug
 Based on the collected performance data, once your program finds that the idle CPU resource is limited, e.g., lower than 10%, you can consider performing the CPU Hot-Plugging with the following command:
 
 ```
-$ VBoxManage controlvm VM1 plugcpu 1
+$ VBoxManage controlvm VM1 plugcpu 2
 ```
 
 The number at the end is the index of the CPU. If there are totally 4 CPUs reserved for your VM, the indices will be from 0 to 3. Each time, you just plug in one more CPU with the corresponding index. You can plug in more CPUs when needed.
@@ -58,10 +57,12 @@ The number at the end is the index of the CPU. If there are totally 4 CPUs reser
 You can keep watching the performance data in your program. Once a new CPU core is plugged in, you can observe the change. If the idle CPU is constantly above a certain threshold, e.g., 85%, you can consider removing some CPU by:
 
 ```
-$ VBoxManage controlvm VM1 unplugcpu 1
+$ VBoxManage controlvm VM1 unplugcpu 2
 ```
 
-Change the VM name and index of CPU accordingly. But `CPU 0 can't be removed`.
+Change the VM name and index of CPU as you want. But `CPU 0 can't be removed`.
+
+#### 3.1 Error in CPU Unplug
 
 There might be some errors after running this command for unplugging:
 
@@ -80,13 +81,13 @@ To resolve this:
 ```bash
 ls /sys/devices/system/cpu
 ```
-Other than cpu0, you might see cpu1, which the second cpu. Then:
+Other than cpu0, you might see cpu1, which is the second cpu. Then in the same guest OS terminal, try the following command:
 ```bash
 sudo cat /sys/devices/system/cpu/cpu1/online
 ```
-If the content is 0, the cpu is not in use. Otherwise, we need to manually set it to 0 (if it's in use, that means the VM is busy, so it's not a good time to do cpu unplug. But if you insist in doing cpu unplug, do the following job):
+If the content is 0, the cpu is not in use. Otherwise, we need to manually set it to 0 (if it's in use, that means the VM is busy, so it's not a good time to do CPU unplug. But if you insist in doing CPU unplug, do the following job in your guest OS terminal):
 ```bash
-echo 0 > /sys/devices/system/cpu/cpu1/online
+sudo echo 0 > /sys/devices/system/cpu/cpu1/online
 ```
 
 (2) To install the guest additions, we need to run the following commands in the guest OS:
@@ -94,8 +95,10 @@ echo 0 > /sys/devices/system/cpu/cpu1/online
 sudo apt update
 sudo apt install build-essential dkms linux-headers-$(uname -r) gcc make perl
 ```
-Then go to VM's virtualbox window, find Devices -> Insert Guest Additions CD image...
-Go back to guest os, and mount the cdrom:
+Then go to your VM's VirtualBox window, find Devices -> Insert Guest Additions CD image...
+![diagram](guest_additions.png)
+
+Go back to guest OS, and mount the cdrom and make the installtion:
 ```bash
 sudo mount /dev/cdrom /media
 sudo /media/VBoxLinuxAdditions.run
