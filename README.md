@@ -35,7 +35,7 @@ To have resource provisioning, we need to first collect the performance data in 
 
 ```bash
     VBoxManage metrics enable VM1 Guest/CPU/Load/Idle
-    VBoxManage metrics collect –period 2 –samples 5 VM1 Guest/CPU/Load/Idle
+    VBoxManage metrics collect –-period 2 –-samples 5 VM1 Guest/CPU/Load/Idle
     VBoxManage metrics query VM1 Guest/CPU/Load/Idle > monitor.dat
 ```
 
