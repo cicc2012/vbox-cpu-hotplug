@@ -107,4 +107,20 @@ There is no output after the first command.
 
 The performance metric used here is Guest/CPU/Load/Idle. The data collection period is 2 seconds. For each record, there will be 5 data points (samples). These can all the be changed based on your design.
 
-The "VBoxManage metrics collect" command will keep generating some outputs, and you can press Ctrl+C to stop (change it based on your OS). Once this is done, the data will be saved periodically in the background (not showed on the screen), so that you can repeat "VBoxManage metrics query" command to get the data again and again. This is the third command in the table above, and the output is redirected to a file named monitor.dat, which can be changed as you need. 
+`VBoxManage metrics collect` streams data to the console until you stop it (e.g., Ctrl+C). `VBoxManage metrics query` retrieves stored values; the example redirects output to `monitor.dat`.
+
+### 4. Notes and extensions
+
+What `VBoxManage` provides is external monitoring: it is coarse-grained and may lag compared to in-guest measurements. Consider the following:
+
+#### 4.1: Interpreting Guest/CPU/Load/Idle
+
+Reserved vCPUs may not all be active at any given time; so `Guest/CPU/Load/Idle` may not directly reflect the percentage of idle vCPUs. We need to create some  workloads (preferably multi-core workloads) to better understand these metrics.
+
+#### 4.2: External vs internal monitoring
+
+In-guest tools such as `/proc/cpuinfo`, `top`, `htop`, and `vmstat` provide more detailed and timely CPU usage information. With Guest Additions, you can exchange information between host and guest using `VBoxControl guestproperty` (in the guest) and `VBoxManage guestproperty` (on the host).
+
+#### 4.3: Programmatic collection and SDK
+
+Command-line workflows can be cumbersome for programmatic provisioning. Consider using a scripting language (Python, C++, etc.) or the VirtualBox SDK to collect and process metrics directly instead of parsing files like `monitor.dat`.
