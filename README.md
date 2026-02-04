@@ -23,29 +23,8 @@ VM1 is the name of the VM you created, and this name is assigned and controlled 
 
 You only need to do this once.
 
-### 2. Monitor the CPU usage of your VM.
 
-Now let's start the VM.
-
-```bash
-    VBoxManage startvm VM1
-```
-
-To have resource provisioning, we need to first collect the performance data in term of usages of system resources. You can use the following commands to collect the target performance data:
-
-```bash
-    VBoxManage metrics enable VM1 Guest/CPU/Load/Idle
-    VBoxManage metrics collect VM1 –-period 2 –-samples 5 Guest/CPU/Load/Idle
-    VBoxManage metrics query VM1 Guest/CPU/Load/Idle > monitor.dat
-```
-
-There is no output after the first command.
-
-The performance metric used here is Guest/CPU/Load/Idle. The data collection period is 2 seconds. For each record, there will be 5 data points (samples). These can all the be changed based on your design.
-
-The "VBoxManage metrics collect" command will keep generating some outputs, and you can press Ctrl+C to stop (change it based on your OS). Once this is done, the data will be saved periodically in the background (not showed on the screen), so that you can repeat "VBoxManage metrics query" command to get the data again and again. This is the third command in the table above, and the output is redirected to a file named monitor.dat, which can be changed as you need. 
-
-### 3. CPU Hotplug
+### 2. CPU Hotplug
 Based on the collected performance data, once your program finds that the idle CPU resource is limited, e.g., lower than 10%, you can consider performing the CPU Hot-Plugging with the following command:
 
 ```
@@ -62,7 +41,7 @@ $ VBoxManage controlvm VM1 unplugcpu 2
 
 Change the VM name and index of CPU as you want. But `CPU 0 can't be removed`.
 
-#### 3.1 Error in CPU Unplug
+#### 2.1 Error in CPU Unplug
 
 There might be some errors after running this command for unplugging:
 
@@ -76,7 +55,9 @@ This might be caused by two common reasons:
 (1) The second cpu is still in use.
 (2) Guest Additions are not installed for our guest OS.
 
-To resolve this:
+#### 2.2 Fix the Error in CPU Unplug
+
+To resolve this, we can ensure the extra CPUs are free to unplug and guest additions are properly installed:
 (1) Inside guest OS, check whether the second cpu is in use:
 ```bash
 ls /sys/devices/system/cpu
@@ -105,3 +86,25 @@ sudo /media/VBoxLinuxAdditions.run
 ```
 Once the guest additions are installed, we should be ready to do cpu unplug.
 
+### 3. Monitor the CPU usage of your VM.
+
+Now let's start the VM.
+
+```bash
+    VBoxManage startvm VM1
+```
+
+To have resource provisioning, we need to first collect the performance data in term of usages of system resources. You can use the following commands to collect the target performance data:
+
+```bash
+    VBoxManage metrics enable VM1 Guest/CPU/Load/Idle
+    VBoxManage metrics setup VM1 --period 2 --samples 5
+    VBoxManage metrics collect VM1 Guest/CPU/Load/Idle
+    VBoxManage metrics query VM1 Guest/CPU/Load/Idle >> monitor.dat
+```
+
+There is no output after the first command.
+
+The performance metric used here is Guest/CPU/Load/Idle. The data collection period is 2 seconds. For each record, there will be 5 data points (samples). These can all the be changed based on your design.
+
+The "VBoxManage metrics collect" command will keep generating some outputs, and you can press Ctrl+C to stop (change it based on your OS). Once this is done, the data will be saved periodically in the background (not showed on the screen), so that you can repeat "VBoxManage metrics query" command to get the data again and again. This is the third command in the table above, and the output is redirected to a file named monitor.dat, which can be changed as you need. 
